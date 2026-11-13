@@ -1,0 +1,49 @@
+/**
+ * Estilos globales de la aplicación
+ *
+ * IMPORTANTE: @use de Sass debe ir PRIMERO, antes que cualquier @import.
+ * @use '@angular/material' carga el sistema de theming de Material.
+ * @import carga CSS de PrimeIcons y PrimeFlex.
+ */
+
+/* Angular Material - Theming (DEBE ir primero por la directiva @use) */
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$light-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$violet-palette,
+    tertiary: mat.$blue-palette,
+  ),
+  typography: (
+    brand-family: 'Inter',
+    plain-family: 'Inter',
+  ),
+));
+
+/* PrimeIcons - Fuente de iconos de PrimeNG */
+@import 'primeicons/primeicons.css';
+
+/* PrimeFlex - Sistema de grid responsivo y utilidades */
+@import 'primeflex/primeflex.css';
+
+/* Aplicar tema de Material globalmente */
+:root {
+  @include mat.all-component-themes($light-theme);
+}
+
+/* Reset básico y estilos globales */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  background: var(--surface-ground, #f8fafc);
+  color: var(--text-color, #1e293b);
+}
