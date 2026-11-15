@@ -120,7 +120,7 @@ export const PropertySignalStore = signalStore(
   // ==========================================================================
   // COMPUTED: Signals derivados (equivalente a selectores)
   // ==========================================================================
-  withComputed(({ properties, selectedPropertyId, totalCount, currentPage, pageSize }) => ({
+  withComputed(({ properties, selectedPropertyId, totalCount, currentPage, pageSize, filters }) => ({
     selectedProperty: computed(() =>
       properties().find((p) => p.id === selectedPropertyId()) ?? null
     ),
@@ -133,7 +133,14 @@ export const PropertySignalStore = signalStore(
       const pages = pageSize() > 0 ? Math.ceil(totalCount() / pageSize()) : 0;
       return currentPage() >= pages;
     }),
-    hasFilters: computed(() => Object.keys({} as PropertyFilter).length > 0),
+    /**
+     * hasFilters verifica si hay filtros activos.
+     * Cuenta las propiedades definidas (no undefined/null) en el objeto filters.
+     */
+    hasFilters: computed(() => {
+      const currentFilters = filters();
+      return Object.values(currentFilters).some(value => value !== undefined && value !== null && value !== '');
+    }),
   })),
 
   // ==========================================================================
@@ -165,10 +172,13 @@ export const PropertySignalStore = signalStore(
           totalCount: response.count,
           loading: false,
         });
-      } catch (err: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : 'Error al cargar propiedades';
         patchState(store, {
           loading: false,
-          error: err?.message ?? 'Error al cargar propiedades',
+          error: errorMessage,
         });
       }
     },
@@ -211,10 +221,13 @@ export const PropertySignalStore = signalStore(
           totalCount: store.totalCount() + 1,
           loading: false,
         });
-      } catch (err: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : 'Error al crear propiedad';
         patchState(store, {
           loading: false,
-          error: err?.message ?? 'Error al crear propiedad',
+          error: errorMessage,
         });
       }
     },
@@ -231,10 +244,13 @@ export const PropertySignalStore = signalStore(
           selectedPropertyId:
             store.selectedPropertyId() === id ? null : store.selectedPropertyId(),
         });
-      } catch (err: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : 'Error al eliminar propiedad';
         patchState(store, {
           loading: false,
-          error: err?.message ?? 'Error al eliminar propiedad',
+          error: errorMessage,
         });
       }
     },

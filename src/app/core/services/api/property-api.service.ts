@@ -284,6 +284,7 @@ export class PropertyApiService {
    * @param property - Propiedad del API
    * @returns Propiedad con fechas como Date objects
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private transformProperty(property: any): Property {
     return {
       ...property,

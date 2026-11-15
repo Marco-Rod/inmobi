@@ -3,11 +3,11 @@
 > **Guía de Aprendizaje Completa**: Este proyecto es una aplicación CRM completa construida con Angular 22, diseñada específicamente para enseñar patrones arquitectónicos empresariales, gestión de estado moderna y mejores prácticas de desarrollo.
 
 [![Angular](https://img.shields.io/badge/Angular-22-red.svg)](https://angular.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
-[![PrimeNG](https://img.shields.io/badge/PrimeNG-22-blue.svg)](https://primeng.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue.svg)](https://www.typescriptlang.org/)
+[![PrimeNG](https://img.shields.io/badge/PrimeNG-21.1-blue.svg)](https://primeng.org/)
 [![Material](https://img.shields.io/badge/Material-22-green.svg)](https://material.angular.io/)
 [![NgRx](https://img.shields.io/badge/NgRx-22-purple.svg)](https://ngrx.io/)
-[![Vitest](https://img.shields.io/badge/Vitest-3.0-yellow.svg)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-5.0-yellow.svg)](https://vitest.dev/)
 [![Tests](https://img.shields.io/badge/Tests-92%2F92-brightgreen.svg)]()
 
 ---
@@ -61,12 +61,12 @@ Este proyecto CRM de bienes raíces fue construido como **guía de aprendizaje d
 ### Tecnologías Clave
 
 - **Frontend**: Angular 22 (standalone components)
-- **UI Libraries**: PrimeNG 22 + Angular Material 22
+- **UI Libraries**: PrimeNG 21.1 + Angular Material 22
 - **State Management**: NgRx 22 tradicional + @ngrx/signals (SignalStore)
 - **Forms**: Reactive Forms con validaciones custom
 - **HTTP**: HttpClient con interceptor de mock API
 - **Routing**: Lazy loading con `loadComponent`
-- **Testing**: Vitest 3.0 (92 tests, 0 failures)
+- **Testing**: Vitest 5.0 (92 tests, 0 failures)
 - **Build**: esbuild + SSR
 
 ---

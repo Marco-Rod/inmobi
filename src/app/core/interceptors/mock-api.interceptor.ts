@@ -27,7 +27,7 @@
  * Este es un FUNCTIONAL interceptor (Angular 22+), no un class-based interceptor.
  */
 
-import { HttpInterceptorFn, HttpResponse, HttpErrorResponse, HttpEvent } from '@angular/common/http';
+import { HttpInterceptorFn, HttpResponse, HttpErrorResponse, HttpEvent, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
@@ -103,9 +103,9 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
  * Maneja la petición y devuelve la respuesta apropiada
  */
 function handleRequest(
-  req: any,
+  req: HttpRequest<unknown>,
   mockData: MockDataService
-): Observable<HttpEvent<any>> {
+): Observable<HttpEvent<unknown>> {
   const { method, url } = req;
 
   // ============================================================================
@@ -125,19 +125,19 @@ function handleRequest(
 
   // POST /api/v1/properties/ - Crear propiedad
   if (method === 'POST' && url.match(/\/api\/v1\/properties\/$/)) {
-    return handleCreateProperty(req.body, mockData);
+    return handleCreateProperty(req.body as PropertyCreateDto, mockData);
   }
 
   // PUT /api/v1/properties/{id}/ - Actualizar propiedad completa
   if (method === 'PUT' && url.match(/\/api\/v1\/properties\/\d+\/$/)) {
     const id = extractIdFromUrl(url);
-    return handleUpdateProperty(id, req.body, mockData);
+    return handleUpdateProperty(id, req.body as PropertyUpdateDto, mockData);
   }
 
   // PATCH /api/v1/properties/{id}/ - Actualizar propiedad parcial
   if (method === 'PATCH' && url.match(/\/api\/v1\/properties\/\d+\/$/)) {
     const id = extractIdFromUrl(url);
-    return handlePatchProperty(id, req.body, mockData);
+    return handlePatchProperty(id, req.body as Partial<Property>, mockData);
   }
 
   // DELETE /api/v1/properties/{id}/ - Eliminar propiedad
@@ -193,13 +193,13 @@ function handleRequest(
  * GET /api/v1/properties/ - Listar propiedades con paginación y filtros
  */
 function handleListProperties(
-  req: any,
+  req: HttpRequest<unknown>,
   mockData: MockDataService
-): Observable<HttpEvent<any>> {
+): Observable<HttpEvent<PaginatedResponse<Property>>> {
   let properties = mockData.getAllProperties();
 
-  // Extraer query parameters
-  const params = parseQueryParams(req.url);
+  // Extraer query parameters usando HttpParams o URL
+  const params = parseQueryParams(req);
   const page = parseInt(params['page'] || '1');
   const pageSize = parseInt(params['page_size'] || '10');
 
@@ -243,7 +243,8 @@ function handleListProperties(
   const sortOrder = params['sort_order'] || 'desc';
 
   properties.sort((a, b) => {
-    let aValue: any, bValue: any;
+    let aValue: string | number;
+    let bValue: string | number;
 
     switch (sortBy) {
       case 'price':
@@ -294,7 +295,7 @@ function handleListProperties(
 /**
  * GET /api/v1/properties/{id}/ - Obtener propiedad específica
  */
-function handleGetProperty(id: number, mockData: MockDataService): Observable<HttpEvent<any>> {
+function handleGetProperty(id: number, mockData: MockDataService): Observable<HttpEvent<Property>> {
   const property = mockData.getPropertyById(id);
 
   if (!property) {
@@ -315,7 +316,7 @@ function handleGetProperty(id: number, mockData: MockDataService): Observable<Ht
 /**
  * POST /api/v1/properties/ - Crear nueva propiedad
  */
-function handleCreateProperty(body: PropertyCreateDto, mockData: MockDataService): Observable<HttpEvent<any>> {
+function handleCreateProperty(body: PropertyCreateDto, mockData: MockDataService): Observable<HttpEvent<Property>> {
   // Validar datos
   const validationErrors = validatePropertyData(body);
   if (Object.keys(validationErrors).length > 0) {
@@ -345,7 +346,7 @@ function handleCreateProperty(body: PropertyCreateDto, mockData: MockDataService
 /**
  * PUT /api/v1/properties/{id}/ - Actualizar propiedad completa
  */
-function handleUpdateProperty(id: number, body: PropertyUpdateDto, mockData: MockDataService): Observable<HttpEvent<any>> {
+function handleUpdateProperty(id: number, body: PropertyUpdateDto, mockData: MockDataService): Observable<HttpEvent<Property>> {
   if (!mockData.exists(id)) {
     return throwError(
       () =>
@@ -380,7 +381,7 @@ function handleUpdateProperty(id: number, body: PropertyUpdateDto, mockData: Moc
 /**
  * PATCH /api/v1/properties/{id}/ - Actualizar propiedad parcialmente
  */
-function handlePatchProperty(id: number, body: Partial<Property>, mockData: MockDataService): Observable<HttpEvent<any>> {
+function handlePatchProperty(id: number, body: Partial<Property>, mockData: MockDataService): Observable<HttpEvent<Property>> {
   if (!mockData.exists(id)) {
     return throwError(
       () =>
@@ -400,7 +401,7 @@ function handlePatchProperty(id: number, body: Partial<Property>, mockData: Mock
 /**
  * DELETE /api/v1/properties/{id}/ - Eliminar propiedad
  */
-function handleDeleteProperty(id: number, mockData: MockDataService): Observable<HttpEvent<any>> {
+function handleDeleteProperty(id: number, mockData: MockDataService): Observable<HttpEvent<null>> {
   const deleted = mockData.deleteProperty(id);
 
   if (!deleted) {
@@ -422,7 +423,7 @@ function handleDeleteProperty(id: number, mockData: MockDataService): Observable
 // HANDLERS DE DASHBOARD
 // ============================================================================
 
-function handleDashboardSummary(mockData: MockDataService): Observable<HttpEvent<any>> {
+function handleDashboardSummary(mockData: MockDataService): Observable<HttpEvent<DashboardSummary>> {
   const properties = mockData.getAllProperties();
 
   const summary: DashboardSummary = {
@@ -439,7 +440,7 @@ function handleDashboardSummary(mockData: MockDataService): Observable<HttpEvent
   return of(new HttpResponse({ status: 200, body: summary }));
 }
 
-function handleCityDistribution(mockData: MockDataService): Observable<HttpEvent<any>> {
+function handleCityDistribution(mockData: MockDataService): Observable<HttpEvent<CityDistribution[]>> {
   const properties = mockData.getAllProperties();
   const cityMap = new Map<string, number>();
 
@@ -459,7 +460,7 @@ function handleCityDistribution(mockData: MockDataService): Observable<HttpEvent
   return of(new HttpResponse({ status: 200, body: distribution }));
 }
 
-function handleMonthlyStats(_mockData: MockDataService): Observable<HttpEvent<any>> {
+function handleMonthlyStats(_mockData: MockDataService): Observable<HttpEvent<MonthlyStats[]>> {
   // Simular estadísticas de los últimos 6 meses
   const months: MonthlyStats[] = [
     { month: '2026-06', sales: 5, rentals: 9, totalRevenue: 16500000 },
@@ -473,7 +474,7 @@ function handleMonthlyStats(_mockData: MockDataService): Observable<HttpEvent<an
   return of(new HttpResponse({ status: 200, body: months }));
 }
 
-function handleTypeDistribution(mockData: MockDataService): Observable<HttpEvent<any>> {
+function handleTypeDistribution(mockData: MockDataService): Observable<HttpEvent<PropertyTypeDistribution[]>> {
   const properties = mockData.getAllProperties();
   const typeMap = new Map<PropertyType, number>();
 
@@ -501,16 +502,31 @@ function extractIdFromUrl(url: string): number {
   return match ? parseInt(match[1]) : 0;
 }
 
-function parseQueryParams(url: string): Record<string, string> {
+function parseQueryParams(req: HttpRequest<unknown>): Record<string, string> {
   const params: Record<string, string> = {};
-  const queryString = url.split('?')[1];
-
-  if (!queryString) return params;
-
-  queryString.split('&').forEach((param) => {
-    const [key, value] = param.split('=');
-    params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+  
+  // Método 1: Leer de HttpParams (recomendado en Angular)
+  // HttpParams es la forma correcta de enviar query params en Angular
+  req.params.keys().forEach((key) => {
+    const value = req.params.get(key);
+    if (value !== null) {
+      params[key] = value;
+    }
   });
+  
+  // Método 2: Fallback - parsear URL si no hay HttpParams
+  // Esto cubre casos donde los params están directamente en la URL
+  if (Object.keys(params).length === 0) {
+    const queryString = req.url.split('?')[1];
+    if (queryString) {
+      queryString.split('&').forEach((param) => {
+        const [key, value] = param.split('=');
+        if (key) {
+          params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+        }
+      });
+    }
+  }
 
   return params;
 }
